@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ComicCraft AI</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #eef6ff, #ffffff);
+            color: #222;
+        }
+
+        .container {
+            width: 92%;
+            max-width: 1100px;
+            margin: 35px auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 42px;
+            margin-bottom: 8px;
+            color: #222;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 18px;
+        }
+
+        .form-box {
+            background: white;
+            padding: 28px;
+            border-radius: 18px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.10);
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-top: 16px;
+            margin-bottom: 7px;
+        }
+
+        textarea,
+        input,
+        select {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            font-size: 15px;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .generate-btn {
+            width: 100%;
+            margin-top: 25px;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            background: #222;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .generate-btn:hover {
+            background: #444;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 25px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .comic {
+            display: none;
+        }
+
+        .comic-title {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .panel {
+            background: white;
+            margin-bottom: 28px;
+            padding: 18px;
+            border-radius: 18px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.10);
+            page-break-inside: avoid;
+        }
+
+        .panel h2 {
+            margin-top: 0;
+            color: #222;
+        }
+
+        .panel img {
+            width: 100%;
+            display: block;
+            border-radius: 14px;
+            margin-bottom: 15px;
+        }
+
+        .scene {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #444;
+        }
+
+        .dialogue {
+            background: #f3f3f3;
+            padding: 14px;
+            border-radius: 12px;
+            margin-top: 12px;
+            font-weight: bold;
+        }
+
+        .download-btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            background: #111;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 25px;
+        }
+
+        .success {
+            display: none;
+            text-align: center;
+            margin-top: 25px;
+            padding: 25px;
+            background: #e9f8ed;
+            border-radius: 15px;
+        }
+
+        .success h2 {
+            margin-top: 0;
+            color: #207a35;
+        }
+
+        .new-btn {
+            margin-top: 15px;
+            padding: 12px 22px;
+            border: none;
+            border-radius: 10px;
+            background: #207a35;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .error {
+            display: none;
+            background: #ffecec;
+            color: #b00020;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1>🎨 ComicCraft AI</h1>
+        <p>Create your own realistic AI comic story 🦊</p>
+    </div>
+
+    <div class="form-box">
+
+        <label>Story Prompt</label>
+
+        <textarea id="prompt"
+            placeholder="Example: A curious fox discovers a mysterious glowing object in a forest and goes on an exciting adventure."></textarea>
+
+        <label>Main Character Name</label>
+
+        <input
+            id="character"
+            type="text"
+            placeholder="Example: Filo">
+
+        <label>Setting</label>
+
+        <input
+            id="setting"
+            type="text"
+            placeholder="Example: Magical Forest">
+
+        <label>Tone</label>
+
+        <select id="tone">
+            <option>Adventure</option>
+            <option>Funny</option>
+            <option>Mystery</option>
+            <option>Emotional</option>
+            <option>Fantasy</option>
+        </select>
+
+        <label>Art Style</label>
+
+        <select id="style">
+            <option>Realistic</option>
+            <option>Cinematic</option>
+            <option>Photorealistic</option>
+        </select>
+
+        <button class="generate-btn" onclick="generateComic()">
+            🦊 Generate Comic
+        </button>
+
+        <div class="loading" id="loading">
+            🦊 Creating your realistic fox comic...<br>
+            Please wait while AI generates the panels.
+        </div>
+
+        <div class="error" id="error"></div>
+
+    </div>
+
+    <div class="comic" id="comic">
+
+        <div class="comic-title">
+            <h1>🦊 Your AI Comic</h1>
+            <p>Realistic Fox Adventure</p>
+        </div>
+
+        <div id="panels"></div>
+
+        <button class="download-btn" onclick="downloadComic()">
+            📄 Download Comic PDF
+        </button>
+
+    </div>
+
+    <div class="success" id="success">
+
+        <h2>✅ Comic Exported Successfully!</h2>
+
+        <p>
+            Your realistic fox comic has been downloaded as a PDF.
+        </p>
+
+        <button class="new-btn" onclick="location.reload()">
+            ✨ Go Create Another Comic
+        </button>
+
+    </div>
+
+</div>
+
+<script>
+
+async function generateComic() {
+
+    const prompt = document.getElementById("prompt").value.trim();
+
+    if (!prompt) {
+        alert("Please enter your story prompt.");
+        return;
+    }
+
+    const loading = document.getElementById("loading");
+    const comic = document.getElementById("comic");
+    const errorBox = document.getElementById("error");
+    const panelsBox = document.getElementById("panels");
+
+    loading.style.display = "block";
+    comic.style.display = "none";
+    errorBox.style.display = "none";
+    panelsBox.innerHTML = "";
+
+    try {
+
+        const formData = new FormData();
+        formData.append("prompt", prompt);
+
+        const response = await fetch("/generate", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (!data.success || !data.images) {
+            throw new Error(
+                data.error || "Comic generation failed."
+            );
+        }
+
+        loading.style.display = "none";
+
+        const sceneDescriptions = [
+            "The fox begins its adventure by exploring the beautiful forest.",
+            "The fox discovers a mysterious glowing object.",
+            "The fox continues the exciting adventure through the forest.",
+            "The fox carefully investigates the mysterious object.",
+            "The fox reaches a happy ending after the adventure."
+        ];
+
+        const dialogues = [
+            "I wonder what is waiting for me...",
+            "Wow! What is that?",
+            "This adventure is getting exciting!",
+            "Something mysterious is happening here...",
+            "I finally made it!"
+        ];
+
+        data.images.forEach((panel, index) => {
+
+            const panelDiv = document.createElement("div");
+
+            panelDiv.className = "panel";
+
+            panelDiv.innerHTML = `
+                <h2>Panel ${panel.panel}: ${panel.title}</h2>
+
+                <img
+                    src="${panel.image}"
+                    alt="Comic panel ${panel.panel}"
+                >
+
+                <div class="scene">
+                    <strong>Scene:</strong>
+                    ${sceneDescriptions[index]}
+                </div>
+
+                <div class="dialogue">
+                    💬 "${dialogues[index]}"
+                </div>
+            `;
+
+            panelsBox.appendChild(panelDiv);
+        });
+
+        comic.style.display = "block";
+
+        window.scrollTo({
+            top: comic.offsetTop,
+            behavior: "smooth"
+        });
+
+    } catch (error) {
+
+        loading.style.display = "none";
+
+        errorBox.innerText = "❌ " + error.message;
+
+        errorBox.style.display = "block";
+    }
+}
+
+
+function downloadComic() {
+
+    const comic = document.getElementById("comic");
+
+    const options = {
+
+        margin: 10,
+
+        filename:
+            "ComicCraft-AI-Realistic-Fox-Comic.pdf",
+
+        image: {
+            type: "jpeg",
+            quality: 0.95
+        },
+
+        html2canvas: {
+            scale: 1.5,
+            useCORS: true
+        },
+
+        jsPDF: {
+            unit: "mm",
+            format: "a4",
+            orientation: "portrait"
+        }
+    };
+
+    html2pdf()
+        .set(options)
+        .from(comic)
+        .save()
+        .then(() => {
+
+            document.getElementById("success").style.display =
+                "block";
+
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: "smooth"
+            });
+
+        });
+
+}
+
+</script>
+
+
+</body>
+</html>
